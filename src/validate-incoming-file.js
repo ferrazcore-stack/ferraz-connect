@@ -65,6 +65,8 @@ export function validateIncomingFile({
 
   const format = detectFormat(bytes, fileName);
   if (!format) issues.push("Formato não reconhecido ou ainda não suportado. A extensão não é prova do formato real.");
+  const extensionFormat = EXTENSIONS[extname(fileName).toLowerCase()];
+  if (format && extensionFormat !== format) issues.push("A extensão do arquivo não corresponde ao conteúdo detectado.");
   if (format && declaredMime !== "application/octet-stream" && declaredMime !== MIME_BY_FORMAT[format]) {
     issues.push("MIME declarado não corresponde ao conteúdo detectado.");
   }

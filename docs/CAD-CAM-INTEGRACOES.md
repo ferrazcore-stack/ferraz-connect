@@ -1,5 +1,5 @@
 # FERRAZ Connect — Contratos de integração CAD/CAM
-**Status:** desenho inicial, não implementação concluída.
+**Status:** contrato documentado; validador inicial de arquivos e manifesto SHA-256 implementados em src/validate-incoming-file.js, com testes Node.js. Upload, antivírus, parsing/conversão e filas ainda não implementados.
 
 ## Responsabilidade
 Centralizar adaptadores de entrada/saída e integrações externas sem colocar regras geométricas ou comerciais no conector. O domínio e a validação permanecem no `ferraz-core`; a experiência de uso permanece nos módulos consumidores.
@@ -31,3 +31,16 @@ Armazenamento por empresa (incluindo Google Drive, se aprovado), serviços OCR/I
 
 ## Limites
 O conector não deve afirmar que um DXF/3D/PDF é fabricável. A validação geométrica, nesting e gate de fabricação pertencem ao core. Compatibilidade CNC exige perfil validado por máquina/controlador e teste físico seguro.
+
+
+## Implementação inicial do pipeline de entrada
+
+A branch contém uma primeira barreira local de validação antes de qualquer parser:
+- Detecta assinatura real para PDF, PNG, JPEG e WEBP; reconhece DXF ASCII e SVG por conteúdo mais extensão.
+- Compara o tipo detectado com o MIME declarado.
+- Aplica limite padrão de 50 MiB, rejeita arquivo vazio e formato não reconhecido.
+- Rejeita SVG com script, foreignObject, atributos de evento, javascript:, DOCTYPE/ENTITY e referências externas/ativas.
+- Calcula SHA-256 e produz manifesto com nome, extensão, formato detectado, MIME, tamanho, origem, data e status explícito validated_metadata_only.
+- Declara parserStatus not_implemented para impedir que a validação de entrada seja confundida com interpretação do desenho.
+
+**Limites:** ainda não há antivírus, upload/storage, parser PDF/DXF, sanitização/regravação segura de SVG, conversão intermediária, processamento assíncrono ou integração com ferraz-core. A validação é uma primeira barreira e não substitui sandbox, scanner ou análise específica de cada formato.
